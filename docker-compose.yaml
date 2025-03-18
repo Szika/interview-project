@@ -1,0 +1,38 @@
+services:
+  redis:
+    image: redis
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    networks:
+      - mynetwork
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql-server
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "Test.123!"
+      ACCEPT_EULA: "Y"
+    networks:
+      - mynetwork
+
+  app:
+    image: demo-project
+    container_name: spring-app
+    depends_on:
+      - redis
+      - mssql
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://mssql:1433;databaseName=master;encrypt=false
+      - SPRING_DATASOURCE_USERNAME=SA
+      - SPRING_DATASOURCE_PASSWORD=Test.123!
+    ports:
+      - "8080:8080"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
